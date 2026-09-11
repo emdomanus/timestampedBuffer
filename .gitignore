@@ -1,0 +1,7 @@
+.verify/
+*.tar.gz
+*.rbxm
+roblox_packages/
+roblox.yml
+sourcemap.json
+pesde.lock

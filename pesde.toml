@@ -1,0 +1,14 @@
+# Provisional name/version for local package review. License, authors and repository
+# are intentionally unset pending the owner's publication choices.
+name = "emdomanus/timestamped_buffer"
+version = "0.1.0"
+description = "A bounded timestamped buffer with ordered access and time brackets."
+includes = ["pesde.toml", "README.md", "src/**/*.luau"]
+
+[target]
+environment = "roblox"
+lib = "src/init.luau"
+build_files = ["src"]
+
+[indices]
+default = "https://github.com/pesde-pkg/index"
