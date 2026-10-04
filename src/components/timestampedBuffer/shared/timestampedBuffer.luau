@@ -1,5 +1,6 @@
 --!strict
 --!optimize 2
+--!native
 
 local TimestampedBufferTypes = require(
 	script.Parent.Parent.Parent.Parent.types.components.timestampedBuffer.shared.timestampedBuffer
@@ -11,20 +12,15 @@ type TimestampedBufferModule = {
 	new: <T>(capacity: number) -> TimestampedBuffer<T>,
 }
 
-local TimestampedBuffer = {}
-TimestampedBuffer.__index = TimestampedBuffer
-
 local function assertFinite(time: number): ()
 	assert(type(time) == "number" and time > -math.huge and time < math.huge, "time must be finite")
 end
 
-@native
 local function slot<T>(self: TimestampedBufferImpl<T>, index: number): number
 	return (self._head + index - 2) % self._capacity + 1
 end
 
 -- Number of entries <= time; the last of these is the newest inserted exact hit.
-@native
 local function upperBound<T>(self: TimestampedBufferImpl<T>, time: number): number
 	local low = 0
 	local high = self._count
@@ -39,12 +35,15 @@ local function upperBound<T>(self: TimestampedBufferImpl<T>, time: number): numb
 	return low
 end
 
+local TimestampedBuffer = {}
+TimestampedBuffer.__index = TimestampedBuffer
+
 function TimestampedBuffer.new<T>(capacity: number): TimestampedBuffer<T>
 	assert(
 		type(capacity) == "number" and capacity > 0 and capacity < math.huge and capacity % 1 == 0,
 		"capacity must be a positive finite integer"
 	)
-	local self = setmetatable(
+	local self: TimestampedBufferImpl<T> = setmetatable(
 		{
 			_values = table.create(capacity),
 			_times = table.create(capacity),
@@ -53,11 +52,10 @@ function TimestampedBuffer.new<T>(capacity: number): TimestampedBuffer<T>
 			_capacity = capacity,
 		} :: TimestampedBufferImpl<T>,
 		TimestampedBuffer
-	)
+	) :: any
 	return self
 end
 
-@native
 function TimestampedBuffer.push<T>(
 	self: TimestampedBufferImpl<T>,
 	value: T,
@@ -85,7 +83,6 @@ function TimestampedBuffer.push<T>(
 	return evictedValue, evictedTime
 end
 
-@native
 function TimestampedBuffer.popOldest<T>(self: TimestampedBufferImpl<T>): (T?, number?)
 	if self._count == 0 then
 		return nil, nil
@@ -100,7 +97,6 @@ function TimestampedBuffer.popOldest<T>(self: TimestampedBufferImpl<T>): (T?, nu
 	return value, time
 end
 
-@native
 function TimestampedBuffer.evictBefore<T>(self: TimestampedBufferImpl<T>, cutoff: number): number
 	assertFinite(cutoff)
 	local removed = 0
@@ -126,7 +122,6 @@ function TimestampedBuffer.newest<T>(self: TimestampedBufferImpl<T>): (T?, numbe
 	return self._values[index], self._times[index]
 end
 
-@native
 function TimestampedBuffer.at<T>(self: TimestampedBufferImpl<T>, index: number): (T?, number?)
 	assert(
 		type(index) == "number" and index > 0 and index < math.huge and index % 1 == 0,
@@ -143,7 +138,6 @@ function TimestampedBuffer.count<T>(self: TimestampedBufferImpl<T>): number
 	return self._count
 end
 
-@native
 function TimestampedBuffer.latestAtOrBefore<T>(
 	self: TimestampedBufferImpl<T>,
 	time: number
@@ -157,7 +151,6 @@ function TimestampedBuffer.latestAtOrBefore<T>(
 	return self._values[physical], self._times[physical]
 end
 
-@native
 function TimestampedBuffer.bracket<T>(
 	self: TimestampedBufferImpl<T>,
 	time: number

@@ -1,4 +1,5 @@
 --!strict
+--!optimize 2
 
 export type TimestampedBuffer<T> = {
 	push: (self: TimestampedBuffer<T>, value: T, time: number) -> (T?, number?),

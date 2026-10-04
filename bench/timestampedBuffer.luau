@@ -1,4 +1,5 @@
 --!strict
+--!optimize 2
 
 local TimestampedBuffer = require("../.verify/src/package")
 local TestTypes = require("../tests/types")
@@ -11,7 +12,9 @@ local checksum = 0
 print(`Each timed loop: {iterations} iterations; seconds from os.clock; Lune host timing`)
 print("capacity,append_s,latest_s,bracket_s,mixed_s,recycled_append_s")
 for _, capacity in { 1, 32, 128, 1024 } do
-	local h: TimestampedBuffer<number> = TimestampedBuffer.new(capacity)
+	local h: TimestampedBuffer<number> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+	)(capacity)
 	local time = 0
 	for i = 1, capacity + 1000 do
 		time += (i % 7) * 0.003
@@ -52,7 +55,9 @@ for _, capacity in { 1, 32, 128, 1024 } do
 		checksum += value or 0
 	end
 	local mixedSeconds = os.clock() - start
-	local records: TimestampedBuffer<Sample> = TimestampedBuffer.new(capacity)
+	local records: TimestampedBuffer<Sample> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<Sample>
+	)(capacity)
 	for i = 1, capacity do
 		records:push({ lifetime = 1, position = i }, i)
 	end

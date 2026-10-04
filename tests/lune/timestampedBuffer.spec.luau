@@ -1,4 +1,5 @@
 --!strict
+--!optimize 2
 
 local TimestampedBuffer = require("../../.verify/src/package")
 local BufferTypes =
@@ -46,7 +47,9 @@ local function bracket<T>(
 end
 
 test("empty and single entry", function()
-	local h: TimestampedBuffer<number> = TimestampedBuffer.new(3)
+	local h: TimestampedBuffer<number> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+	)(3)
 	equal(h:count(), 0)
 	pair(nil, nil, h:oldest())
 	pair(nil, nil, h:newest())
@@ -69,7 +72,9 @@ end)
 
 test("capacity one and repeated wraparound", function()
 	for capacity = 1, 7 do
-		local h: TimestampedBuffer<number> = TimestampedBuffer.new(capacity)
+		local h: TimestampedBuffer<number> = (
+			TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+		)(capacity)
 		for i = 1, 100 do
 			local evicted, time = h:push(i, i * 0.5)
 			if i > capacity then
@@ -90,7 +95,9 @@ test("capacity one and repeated wraparound", function()
 end)
 
 test("uneven intervals and duplicate newest exact hit across wrap", function()
-	local h: TimestampedBuffer<number> = TimestampedBuffer.new(5)
+	local h: TimestampedBuffer<number> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+	)(5)
 	for i, time in { -10, -5, 0, 0.25, 4, 4, 9 } do
 		h:push(i, time)
 	end
@@ -113,7 +120,9 @@ test("uneven intervals and duplicate newest exact hit across wrap", function()
 end)
 
 test("strict cutoff and mixed capacity eviction", function()
-	local h: TimestampedBuffer<number> = TimestampedBuffer.new(4)
+	local h: TimestampedBuffer<number> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+	)(4)
 	for i, time in { 1, 2, 2, 8, 10 } do
 		h:push(i, time)
 	end
@@ -137,7 +146,9 @@ test("invalid inputs are rejected before mutation", function()
 			TimestampedBuffer.new(capacity)
 		end)
 	end
-	local h: TimestampedBuffer<number?> = TimestampedBuffer.new(2)
+	local h: TimestampedBuffer<number?> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<number?>
+	)(2)
 	h:push(1, 10)
 	h:push(2, 20)
 	local impl = h :: TimestampedBufferImpl<number?>
@@ -180,7 +191,9 @@ test("invalid inputs are rejected before mutation", function()
 end)
 
 test("clear and removal release references and reuse arrays", function()
-	local h: TimestampedBuffer<Sample> = TimestampedBuffer.new(3)
+	local h: TimestampedBuffer<Sample> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<Sample>
+	)(3)
 	local impl = h :: TimestampedBufferImpl<Sample>
 	local values, times = impl._values, impl._times
 	for i = 1, 3 do
@@ -208,7 +221,9 @@ test("clear and removal release references and reuse arrays", function()
 end)
 
 test("false is a valid payload", function()
-	local h: TimestampedBuffer<boolean> = TimestampedBuffer.new(1)
+	local h: TimestampedBuffer<boolean> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<boolean>
+	)(1)
 	h:push(false, 0)
 	bracket(h, 0, false, 0, false, 0)
 	pair(false, 0, h:push(true, 1))
@@ -216,7 +231,9 @@ end)
 
 test("consumer examples: lifetime boundary, interpolation and explicit reset", function()
 	Examples.recycle()
-	local h: TimestampedBuffer<number> = TimestampedBuffer.new(4)
+	local h: TimestampedBuffer<number> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+	)(4)
 	h:push(10, 1)
 	h:push(30, 3)
 	equal(Examples.interpolate(h, 2), 20)
@@ -226,7 +243,9 @@ test("consumer examples: lifetime boundary, interpolation and explicit reset", f
 	h:push(50, -10)
 	equal(Examples.interpolate(h, 2), nil)
 	equal(Examples.interpolate(h, -10), 50)
-	local samples: TimestampedBuffer<Sample> = TimestampedBuffer.new(4)
+	local samples: TimestampedBuffer<Sample> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<Sample>
+	)(4)
 	samples:push({ lifetime = 1, position = 0 }, 0)
 	samples:push({ lifetime = 1, position = 10 }, 1)
 	samples:push({ lifetime = 2, position = 100 }, 2)
@@ -236,7 +255,9 @@ test("consumer examples: lifetime boundary, interpolation and explicit reset", f
 end)
 
 test("owner retains one strict predecessor", function()
-	local h: TimestampedBuffer<number> = TimestampedBuffer.new(8)
+	local h: TimestampedBuffer<number> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+	)(8)
 	for i, time in { 1, 2, 2, 4, 7 } do
 		h:push(i, time)
 	end
@@ -254,7 +275,9 @@ test("mixed operations agree with chronological reference model", function()
 		return seed % maximum + 1
 	end
 	for _, capacity in { 1, 2, 3, 8, 32, 127 } do
-		local h: TimestampedBuffer<number> = TimestampedBuffer.new(capacity)
+		local h: TimestampedBuffer<number> = (
+			TimestampedBuffer.new :: (number) -> TimestampedBuffer<number>
+		)(capacity)
 		local reference: { ReferenceEntry } = {}
 		local time = 0
 		for iteration = 1, 3000 do

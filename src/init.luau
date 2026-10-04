@@ -1,4 +1,5 @@
 --!strict
+--!optimize 2
 
 local TimestampedBuffer = require(script.components.timestampedBuffer.shared.timestampedBuffer)
 local TimestampedBufferTypes =

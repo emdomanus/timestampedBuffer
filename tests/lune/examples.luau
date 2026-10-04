@@ -1,4 +1,5 @@
 --!strict
+--!optimize 2
 
 local TimestampedBuffer = require("../../.verify/src/package")
 local TestTypes = require("../types")
@@ -31,7 +32,9 @@ function Examples.hurtboxPosition(history: TimestampedBuffer<Sample>, time: numb
 end
 
 function Examples.recycle(): ()
-	local history: TimestampedBuffer<Sample> = TimestampedBuffer.new(4)
+	local history: TimestampedBuffer<Sample> = (
+		TimestampedBuffer.new :: (number) -> TimestampedBuffer<Sample>
+	)(4)
 	for i = 1, 4 do
 		history:push({ lifetime = 1, position = i }, i)
 	end
